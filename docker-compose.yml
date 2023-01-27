@@ -1,0 +1,42 @@
+version: '3'
+
+services:
+  templateProject:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    image: 'bitnami/symfony:1'
+    container_name: templateProject
+    ports:
+      - "80:80"
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - database
+  ###> doctrine/doctrine-bundle ###
+  database:
+    build:
+      context: docker/db
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      POSTGRES_DB: 'templateDb'
+      POSTGRES_USER: 'templateUsername'
+      POSTGRES_PASSWORD: 'templatePassword'
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5433:5432"
+    volumes:
+      - database_data:/var/lib/postgresql/data:rw
+      # You may use a bind-mounted host directory instead, so that it is harder to accidentally remove the volume and lose all your data!
+      # - ./docker/db/data:/var/lib/postgresql/data:rw
+###< doctrine/doctrine-bundle ###
+
+volumes:
+  ###> doctrine/doctrine-bundle ###
+  database_data:
+###< doctrine/doctrine-bundle ###
